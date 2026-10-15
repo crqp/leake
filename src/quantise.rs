@@ -301,6 +301,7 @@ fn pack_channels(channels: &[f64; CHANNELS]) -> u32 {
         | clamp_to_byte(channels[2])
 }
 
+// round exact halves to even so values sitting on a half do not systematically round up
 fn clamp_to_byte(value: f64) -> u32 {
     if value <= 0.0 {
         return 0;

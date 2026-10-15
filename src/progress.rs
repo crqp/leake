@@ -1,6 +1,7 @@
 use std::io::{self, Write};
 use std::time::{Duration, Instant};
 
+// rate limit redraws so a fast encoder does not flood stderr
 const REDRAW_INTERVAL: Duration = Duration::from_millis(100);
 
 pub struct Progress {
@@ -26,6 +27,7 @@ impl Progress {
         if self.closed {
             return;
         }
+        // always draw the final frame, even inside the redraw interval
         let now = Instant::now();
         if clamped < 1.0
             && self

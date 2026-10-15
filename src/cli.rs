@@ -203,6 +203,7 @@ impl Cli {
     }
 }
 
+// leaving None when neither flag appears lets the caller apply its own default
 fn toggle(yes: bool, no: bool) -> Option<bool> {
     match (yes, no) {
         (true, _) => Some(true),

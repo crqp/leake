@@ -87,6 +87,7 @@ fn is_video(path: &Path) -> bool {
         })
 }
 
+// every failure is collected so one bad input does not hide the rest
 fn decode_stills(paths: &[PathBuf]) -> Result<Vec<Frame>> {
     let mut frames = Vec::with_capacity(paths.len());
     let mut errors = Vec::new();

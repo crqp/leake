@@ -8,6 +8,7 @@ pub struct MipSpec {
     pub paths: Vec<PathBuf>,
 }
 
+// None defers the mipmap default to the layout and the progress default to terminal detection
 #[derive(Clone, Debug)]
 #[allow(clippy::struct_excessive_bools)]
 pub struct SprayOptions {

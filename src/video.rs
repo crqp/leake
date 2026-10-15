@@ -107,6 +107,7 @@ fn read_frames(
     while let Some(png) = read_png(&mut reader)
         .map_err(|error| ImportError::new(format!("cannot read ffmpeg's output. {error}")))?
     {
+        // the cap is charged before decoding so the frame over it is dropped undecoded
         if budget.as_deref_mut().is_some_and(FrameBudget::stop) {
             break;
         }
@@ -250,6 +251,7 @@ fn read_png(reader: &mut impl Read) -> std::io::Result<Option<Vec<u8>>> {
     }
     let mut image = Vec::new();
     image.extend_from_slice(&signature);
+    // image2pipe joins PNGs without a length prefix, so IEND marks each frame boundary
     loop {
         let mut header = [0u8; 8];
         if !read_fully(reader, &mut header)? {

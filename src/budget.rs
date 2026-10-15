@@ -6,6 +6,7 @@ pub const LIMIT_KIB: f64 = 513.0;
 
 const MIPMAP_FACTOR: f64 = 1.332_031_25;
 
+// 385 times MIPMAP_FACTOR lands just under LIMIT_KIB
 const MIPMAP_LIMIT_KIB: f64 = 385.0;
 
 const MIN_RESOLUTION: u32 = 4;

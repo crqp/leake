@@ -75,6 +75,7 @@ fn encode_rows(
     on_progress: Option<&mut (dyn FnMut(usize, usize) + Send)>,
     encode_chunk: impl Fn(usize, &mut [u8]) + Sync,
 ) {
+    // splitting rows into several chunks per worker keeps threads busy when per-block cost varies
     let rows_per_task = (row_count / jobs.saturating_mul(4)).max(1);
     let chunk_bytes = rows_per_task * row_bytes;
     if jobs <= 1 {
