@@ -3,7 +3,7 @@ name = "leake"
 version = "1.0.0"
 edition = "2024"
 description = "Converts images, animated GIFs, and videos into Source Engine spray textures"
-license = "GPLv3"
+license = "EUPL-1.2"
 
 [lints.clippy]
 pedantic = "warn"
