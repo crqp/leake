@@ -5,6 +5,10 @@ edition = "2024"
 description = "Converts images, animated GIFs, and videos into Source Engine spray textures"
 license = "EUPL-1.2"
 
+[features]
+default = ["gpu"]
+gpu = ["dep:pollster", "dep:wgpu"]
+
 [lints.clippy]
 pedantic = "warn"
 style = "warn"
@@ -21,7 +25,9 @@ strip = true
 clap = { version = "4.6.7", features = ["derive"] }
 fast_image_resize = { version = "6.1.0", features = ["image"] }
 image = "0.25.10"
+pollster = { version = "1.0.1", optional = true }
 rayon = "1.12.0"
+wgpu = { version = "30.0.1", optional = true }
 
 [dev-dependencies]
 sha2 = "0.10.9"

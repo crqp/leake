@@ -82,6 +82,7 @@ leake --dry-run -w 256 animation.gif
 | `--all-frames`              | Keep every GIF frame instead of sampling at spray playback rate.                                        |
 | `--vmt, --no-vmt`           | Write or suppress the matching material file. Default: enabled.                                         |
 | `-j, --jobs COUNT`          | Number of encoding threads. Default: available processors.                                              |
+| `--gpu`                     | Encode with the GPU. Falls back to the CPU when no usable adapter is present.                           |
 | `--progress, --no-progress` | Show or suppress encoding progress on stderr. Default: enabled in a terminal.                           |
 | `--dry-run`                 | Report the planned layout without writing output files.                                                 |
 
@@ -94,3 +95,8 @@ order and repeated if the animation has more frames than the replacement set:
 ```sh
 leake -w 256 --mip 1=small-a.png,small-b.png source.png
 ```
+
+### GPU encoding
+
+`--gpu` encodes on the GPU. DXT compression may produce slightly different
+bytes from the CPU encoder. `--jobs` only affects the CPU encoder.

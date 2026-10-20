@@ -133,6 +133,10 @@ pub struct Cli {
     #[arg(short = 'j', long = "jobs", value_name = "COUNT", default_value_t = default_jobs())]
     pub jobs: usize,
 
+    /// encode on the GPU; output may differ slightly from the CPU encoder
+    #[arg(long = "gpu")]
+    pub gpu: bool,
+
     /// show encoding progress on stderr
     #[arg(long = "progress", overrides_with = "no_progress")]
     pub progress: bool,
@@ -173,6 +177,7 @@ impl Cli {
             vmt,
             no_vmt,
             jobs,
+            gpu,
             progress,
             no_progress,
             dry_run,
@@ -197,6 +202,7 @@ impl Cli {
             all_frames,
             write_vmt: toggle(vmt, no_vmt).unwrap_or(true),
             jobs,
+            gpu,
             progress: toggle(progress, no_progress),
             dry_run,
         }

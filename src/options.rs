@@ -31,6 +31,7 @@ pub struct SprayOptions {
     pub all_frames: bool,
     pub write_vmt: bool,
     pub jobs: usize,
+    pub gpu: bool,
     pub progress: Option<bool>,
     pub dry_run: bool,
 }
@@ -57,6 +58,7 @@ impl Default for SprayOptions {
             all_frames: false,
             write_vmt: true,
             jobs: default_jobs(),
+            gpu: false,
             progress: None,
             dry_run: false,
         }

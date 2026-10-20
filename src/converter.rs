@@ -7,6 +7,7 @@ use crate::compositor;
 use crate::encode;
 use crate::error::{ImportError, Result};
 use crate::frame::Frame;
+use crate::gpu;
 use crate::input::{self, DecodedInput};
 use crate::options::SprayOptions;
 use crate::progress::Progress;
@@ -55,8 +56,9 @@ pub fn run(options: &SprayOptions) -> Result<()> {
 
     let custom_levels = load_custom_levels(options, &layout)?;
     let levels = compositor::build(&frames, &layout, options.rescale, &custom_levels);
-    let encoded = encode_levels(&levels, options);
-    let actual_bytes = encoded.iter().map(Vec::len).sum::<usize>() + vtf::HEADER_SIZE;
+    let encoder = start_encoder(options);
+    let payloads = encode_levels(&levels, options, encoder.as_ref());
+    let actual_bytes = payloads.iter().map(Vec::len).sum::<usize>() + vtf::HEADER_SIZE;
     if actual_bytes as f64 > budget::LIMIT_KIB * 1024.0 {
         warn(&format!(
             "the texture is {}, above the {} Source will load. Reduce the size, or drop the mipmap levels",
@@ -65,7 +67,7 @@ pub fn run(options: &SprayOptions) -> Result<()> {
         ));
     }
 
-    let written = write(options, &layout, &encoded)?;
+    let written = write(options, &layout, &payloads)?;
     report_result(options, &layout, actual_bytes as u64, &written);
     Ok(())
 }
@@ -151,32 +153,76 @@ fn load_custom_levels(options: &SprayOptions, layout: &Layout) -> Result<HashMap
     Ok(levels)
 }
 
-fn encode_levels(levels: &[Frame], options: &SprayOptions) -> Vec<Vec<u8>> {
+fn encode_levels(
+    levels: &[Frame],
+    options: &SprayOptions,
+    mut encoder: Option<&gpu::Encoder>,
+) -> Vec<Vec<u8>> {
     let show_progress = options
         .progress
         .unwrap_or_else(|| std::io::stderr().is_terminal());
     let mut progress = show_progress.then(|| Progress::new("encoding"));
     let level_count = levels.len();
-    let mut encoded = Vec::with_capacity(level_count);
+    let mut payloads = Vec::with_capacity(level_count);
     for (index, level) in levels.iter().enumerate() {
         let mut sink = |done: usize, total: usize| {
             if let Some(progress) = &mut progress {
                 progress.update((index as f64 + done as f64 / total as f64) / level_count as f64);
             }
         };
-        encoded.push(encode::encode(
-            level,
-            options.format,
-            options.quality,
-            options.dither,
-            options.jobs,
-            Some(&mut sink),
-        ));
+        let bytes = match encoder {
+            Some(active) => {
+                match active.encode(level, options.format, options.quality, options.dither) {
+                    Ok(bytes) => {
+                        sink(1, 1);
+                        bytes
+                    }
+                    Err(error) => {
+                        warn(&format!(
+                            "GPU encoding failed ({error}), so the CPU encoder is used instead"
+                        ));
+                        encoder = None;
+                        encode::encode(
+                            level,
+                            options.format,
+                            options.quality,
+                            options.dither,
+                            options.jobs,
+                            Some(&mut sink),
+                        )
+                    }
+                }
+            }
+            None => encode::encode(
+                level,
+                options.format,
+                options.quality,
+                options.dither,
+                options.jobs,
+                Some(&mut sink),
+            ),
+        };
+        payloads.push(bytes);
     }
     if let Some(progress) = &mut progress {
         progress.close();
     }
-    encoded
+    payloads
+}
+
+fn start_encoder(options: &SprayOptions) -> Option<gpu::Encoder> {
+    if !options.gpu {
+        return None;
+    }
+    match gpu::Encoder::new() {
+        Ok(encoder) => Some(encoder),
+        Err(error) => {
+            warn(&format!(
+                "GPU encoding is unavailable ({error}), so the CPU encoder is used instead"
+            ));
+            None
+        }
+    }
 }
 
 fn write(options: &SprayOptions, layout: &Layout, levels: &[Vec<u8>]) -> Result<Vec<PathBuf>> {

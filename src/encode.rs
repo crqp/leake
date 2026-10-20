@@ -246,7 +246,7 @@ fn encode_packed_chunk(
     }
 }
 
-fn write_pixel(pixel: u32, format: VtfFormat, target: &mut [u8], offset: usize) {
+pub(crate) fn write_pixel(pixel: u32, format: VtfFormat, target: &mut [u8], offset: usize) {
     let red = (pixel >> 16) & 0xff;
     let green = (pixel >> 8) & 0xff;
     let blue = pixel & 0xff;
@@ -282,7 +282,7 @@ fn write_pixel(pixel: u32, format: VtfFormat, target: &mut [u8], offset: usize) 
     }
 }
 
-fn bytes_per_pixel(format: VtfFormat) -> usize {
+pub(crate) fn bytes_per_pixel(format: VtfFormat) -> usize {
     match format {
         VtfFormat::Rgba8888 => 4,
         VtfFormat::Rgb888 => 3,

@@ -16,6 +16,7 @@ pub mod error;
 pub mod format;
 pub mod frame;
 pub mod gif;
+pub mod gpu;
 pub mod input;
 pub mod options;
 pub mod progress;

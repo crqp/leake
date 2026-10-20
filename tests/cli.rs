@@ -47,6 +47,27 @@ fn writes_a_texture_and_a_material_file() {
 }
 
 #[test]
+fn the_gpu_flag_writes_a_texture() {
+    let directory = tempfile::tempdir().expect("temp dir");
+    let source = fixture("sample.png");
+    let (code, stdout, stderr) = run(&[
+        "--gpu",
+        "-d",
+        &directory_arg(directory.path()),
+        "-w",
+        "32",
+        "-q",
+        "fast",
+        &source_arg(&source),
+    ]);
+
+    assert_eq!(0, code, "{stdout}{stderr}");
+    let bytes = std::fs::read(directory.path().join("spray.vtf")).expect("read vtf");
+    assert_eq!("VTF", signature(&bytes));
+    assert_eq!(32, u16_at(&bytes, 16));
+}
+
+#[test]
 fn the_material_file_can_be_left_out() {
     let directory = tempfile::tempdir().expect("temp dir");
     let source = fixture("sample.png");

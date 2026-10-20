@@ -10,7 +10,7 @@ const DITHER_SIZE: usize = 4;
 const CHANNELS: usize = 3;
 
 // rows index the 17 rungs of the ladder between the two nearest shades, columns index a 4x4 ordered pattern across the image
-const DITHER_MATRIX: [[u8; DITHER_SIZE * DITHER_SIZE]; LADDER_STEPS] = [
+pub(crate) const DITHER_MATRIX: [[u8; DITHER_SIZE * DITHER_SIZE]; LADDER_STEPS] = [
     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
     [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
     [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
@@ -133,6 +133,19 @@ static SHADES: LazyLock<HashMap<u32, Shades>> = LazyLock::new(|| {
 
 fn shades(bits: u32) -> &'static Shades {
     SHADES.get(&bits).expect("known shade width")
+}
+
+#[cfg(feature = "gpu")]
+#[must_use]
+pub(crate) fn shade_tables(bits: u32) -> ([u32; 256], [u32; 256]) {
+    let shades = shades(bits);
+    let mut lower = [0u32; 256];
+    let mut upper = [0u32; 256];
+    for value in 0..256 {
+        lower[value] = shades.lower[value] as u32;
+        upper[value] = shades.upper[value] as u32;
+    }
+    (lower, upper)
 }
 
 #[must_use]
